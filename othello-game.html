@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        canvas {
+            background-color: black;
+            border: 0px solid white;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="boardCanvas" width="400" height="400"></canvas>
+
+    <script>
+        const BOARD_SIZE = 8;
+        const CELL_SIZE = 50;
+        const PLAYER_COLOR = 'black';
+        const AI_COLOR = 'white';
+
+        let canvas = document.getElementById('boardCanvas');
+        let context = canvas.getContext('2d');
+        let board = [];
+        let currentPlayer;
+
+        // Initialize the board
+        function initializeBoard() {
+            board = Array.from({ length: BOARD_SIZE }, () => Array.from({ length: BOARD_SIZE }, () => null));
+            board[3][3] = 'white';
+            board[3][4] = 'black';
+            board[4][3] = 'black';
+            board[4][4] = 'white';
+            currentPlayer = PLAYER_COLOR;
+        }
+
+        // Function to draw the board
+        function drawBoard() {
+            context.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw the cells
+            for (let row = 0; row < BOARD_SIZE; row++) {
+                for (let col = 0; col < BOARD_SIZE; col++) {
+                    let x = col * CELL_SIZE;
+                    let y = row * CELL_SIZE;
+
+                    context.fillStyle = 'darkslategray';
+                    context.fillRect(x, y, CELL_SIZE, CELL_SIZE);
+
+                    if (board[row][col] === PLAYER_COLOR) {
+                        drawPiece(x, y, PLAYER_COLOR);
+                    } else if (board[row][col] === AI_COLOR) {
+                        drawPiece(x, y, AI_COLOR);
+                    }
+                }
+            }
+
+            // Draw the valid moves for the current player
+            if (currentPlayer === PLAYER_COLOR) {
+                for (let row = 0; row < BOARD_SIZE; row++) {
+                    for (let col = 0; col < BOARD_SIZE; col++) {
+                        if (isValidMove(row, col, currentPlayer)) {
+                            let x = col * CELL_SIZE + CELL_SIZE / 2;
+                            let y = row * CELL_SIZE + CELL_SIZE / 2;
+
+                            context.beginPath();
+                            context.arc(x, y, CELL_SIZE / 5, 0, 2 * Math.PI, false);
+                            context.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                            context.fill();
+                            context.closePath();
+                        }
+                    }
+                }
+            }
+            
+            // Check if the game is over
+            if (!hasValidMove()) {
+                let playerScore = getScore(PLAYER_COLOR);
+                let aiScore = getScore(AI_COLOR);
+                let message = 'Game Over';
+
+                if (playerScore > aiScore) {
+                    message += '\nYou Win!';
+                } else if (aiScore > playerScore) {
+                    message += '\nYou Lose!';
+                } else {
+                    message += '\nIt\'s a Draw!';
+                }
+
+                context.font = '20px Arial';
+                context.fillStyle = 'black';
+                context.textAlign = 'center';
+
+                const boxWidth = context.measureText(message).width + 20;
+                const boxHeight = 60;
+                const boxX = canvas.width / 2 - boxWidth / 2;
+                const boxY = canvas.height / 2 - boxHeight / 2;
+
+                context.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                context.fillRect(boxX, boxY, boxWidth, boxHeight);
+
+                context.fillStyle = 'black';
+                context.fillText(message, canvas.width / 2, canvas.height / 2);
+            }
+        }
+
+        // Function to draw a piece
+        function drawPiece(x, y, color) {
+            context.beginPath();
+            context.arc(x + CELL_SIZE / 2, y + CELL_SIZE / 2, CELL_SIZE / 2 - 5, 0, 2 * Math.PI, false);
+            context.fillStyle = color;
+            context.fill();
+            context.closePath();
+        }
+
+        // Function to handle the player's move
+        function playerMove(event) {
+            if (currentPlayer !== PLAYER_COLOR) {
+                return;
+            }
+
+            let rect = canvas.getBoundingClientRect();
+            let x = event.clientX - rect.left;
+            let y = event.clientY - rect.top;
+
+            let col = Math.floor(x / CELL_SIZE);
+            let row = Math.floor(y / CELL_SIZE);
+
+            if (isValidMove(row, col, currentPlayer)) {
+                makeMove(row, col, currentPlayer);
+                switchPlayer();
+                setTimeout(makeAIMove, 500);
+                drawBoard();
+            }
+        }
+
+        // Function to handle play again button click
+        function playAgain() {
+            initializeBoard();
+            drawBoard();
+        }
+
+        // Event listener for mouse click on the canvas
+        canvas.addEventListener('click', playerMove);
+
+        // Create a play again button
+        let playAgainButton = document.createElement('button');
+        playAgainButton.textContent = 'Play Again';
+        playAgainButton.addEventListener('click', playAgain);
+
+        // Append the play again button to the body
+        document.body.appendChild(playAgainButton);
+
+        // Function to check if a move is valid
+        function isValidMove(row, col, color) {
+            if (board[row][col] !== null) {
+                return false;
+            }
+
+            const opponentColor = (color === PLAYER_COLOR) ? AI_COLOR : PLAYER_COLOR;
+
+            for (let rowDir = -1; rowDir <= 1; rowDir++) {
+                for (let colDir = -1; colDir <= 1; colDir++) {
+                    if (rowDir === 0 && colDir === 0) {
+                        continue;
+                    }
+
+                    let r = row + rowDir;
+                    let c = col + colDir;
+                    let foundOpponentPiece = false;
+
+                    while (r >= 0 && r < BOARD_SIZE && c >= 0 && c < BOARD_SIZE) {
+                        if (board[r][c] === opponentColor) {
+                            foundOpponentPiece = true;
+                        } else if (board[r][c] === color && foundOpponentPiece) {
+                            return true;
+                        } else {
+                            break;
+                        }
+
+                        r += rowDir;
+                        c += colDir;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        // Function to make a move
+        function makeMove(row, col, color) {
+            board[row][col] = color;
+
+            const opponentColor = (color === PLAYER_COLOR) ? AI_COLOR : PLAYER_COLOR;
+
+            for (let rowDir = -1; rowDir <= 1; rowDir++) {
+                for (let colDir = -1; colDir <= 1; colDir++) {
+                    if (rowDir === 0 && colDir === 0) {
+                        continue;
+                    }
+
+                    let r = row + rowDir;
+                    let c = col + colDir;
+                    let foundOpponentPiece = false;
+                    let piecesToFlip = [];
+
+                    while (r >= 0 && r < BOARD_SIZE && c >= 0 && c < BOARD_SIZE) {
+                        if (board[r][c] === opponentColor) {
+                            foundOpponentPiece = true;
+                            piecesToFlip.push({ row: r, col: c });
+                        } else if (board[r][c] === color && foundOpponentPiece) {
+                            for (let piece of piecesToFlip) {
+                                board[piece.row][piece.col] = color;
+                            }
+
+                            break;
+                        } else {
+                            break;
+                        }
+
+                        r += rowDir;
+                        c += colDir;
+                    }
+                }
+            }
+        }
+
+        // Function to switch the current player
+        function switchPlayer() {
+            currentPlayer = (currentPlayer === PLAYER_COLOR) ? AI_COLOR : PLAYER_COLOR;
+        }
+
+        // Function to check if the current player has a valid move
+        function hasValidMove() {
+            for (let row = 0; row < BOARD_SIZE; row++) {
+                for (let col = 0; col < BOARD_SIZE; col++) {
+                    if (isValidMove(row, col, currentPlayer)) {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        // Function to make the AI move
+        function makeAIMove() {
+            if (currentPlayer !== AI_COLOR) {
+                return;
+            }
+
+            let bestScore = Number.NEGATIVE_INFINITY;
+            let bestMove = null;
+
+            for (let row = 0; row < BOARD_SIZE; row++) {
+                for (let col = 0; col < BOARD_SIZE; col++) {
+                    if (isValidMove(row, col, currentPlayer)) {
+                        let score = evaluateMove(row, col, currentPlayer);
+
+                        if (score > bestScore) {
+                            bestScore = score;
+                            bestMove = { row, col };
+                        }
+                    }
+                }
+            }
+
+            if (bestMove) {
+                makeMove(bestMove.row, bestMove.col, currentPlayer);
+                switchPlayer();
+                drawBoard();
+            }
+        }
+
+        // Function to evaluate a move
+        function evaluateMove(row, col, color) {
+            const tempBoard = JSON.parse(JSON.stringify(board));
+            makeMove(row, col, color);
+            let score = getScore(color);
+            board = tempBoard;
+            return score;
+        }
+
+        // Function to calculate the score for a given color
+        function getScore(color) {
+            let score = 0;
+
+            for (let row = 0; row < BOARD_SIZE; row++) {
+                for (let col = 0; col < BOARD_SIZE; col++) {
+                    if (board[row][col] === color) {
+                        score++;
+                    }
+                }
+            }
+
+            return score;
+        }
+
+        // Event listener for mouse click on the canvas
+        canvas.addEventListener('click', playerMove);
+
+        // Initialize the board and draw it
+        initializeBoard();
+        drawBoard();
+    </script>
+</body>
+</html>
