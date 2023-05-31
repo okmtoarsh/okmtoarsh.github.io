@@ -1,17 +1,140 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <style>
-        canvas {
-            background-color: black;
-            border: 0px solid white;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>okmtoarsh</title>
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      font-weight: 100;
+      margin: 0;
+      padding: 0;
+      background-color: #222222;
+      color: #ffffff;
+      letter-spacing: 2px;
+      line-height: 3;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 20px auto;
+      padding: 40px;
+    }
+
+    h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+
+    p {
+      margin-bottom: 10px;
+    }
+
+    table {
+      width: 100%;
+      margin-bottom: 20px;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 8px;
+      border-bottom: 1px solid #ddd;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f2f2f2;
+    }
+
+    img {
+      max-width: 100%;
+      height: auto;
+      margin-bottom: 20px;
+    }
+    
+    .game-container {
+      text-align: center; /* Center the game */
+    }
+
+    #boardCanvas {
+      margin: 0 auto; /* Center the canvas horizontally */
+      display: block;
+    }
+
+    .play-again-button {
+      text-align: center; /* Center the button */
+      margin-top: -40px; /* Add some spacing between the game and the button */
+    }
+
+    .play-again-button button {
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: #222222;
+      color: #ffffff;
+      text-decoration: none;
+      border: 1px solid #ffffff;
+      border-radius: 4px;
+      font-size: 18px;
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    .play-again-button button:hover {
+      transform: scale(1.05);
+
+    .links-container {
+      margin-top: 40px; /* Adjust the spacing here */
+    }
+
+    .links-container a.rectangle-link {
+      display: block;
+      width: 98%;
+      padding: 10px;
+      background-color: #222222;
+      color: #ffffff;
+      text-decoration: none;
+      border: 1px solid #ffffff;
+      border-radius: 4px;
+      font-size: 18px;
+      text-transform: uppercase;
+      text-align: left;
+      margin-bottom: 35px;
+    }
+
+    .links-container a.rectangle-link:hover {
+      transform: scale(1.05);
+    }
+  </style>
 </head>
 <body>
-    <canvas id="boardCanvas" width="400" height="400"></canvas>
-
-    <script>
+  <div class="container">
+    <h1>othello game implementation</h1>
+    <table>
+      <tbody>
+        <tr>
+          <td>languages:</td>
+          <td>HTML, CSS, JavaScript</td>
+        </tr>
+        <tr>
+          <td>features:</td>
+          <td>- interactive GUI to play the othello game
+            <br>- player vs computer gameplay
+            <br>- move validation and piece flipping
+            <br>- game over detection and result display
+            <br>- play again option to restart the game</td>
+        </tr>
+        <tr>
+          <td>computer opponent algorithm:</td>
+          <td>The opponent in this implementation utilizes a greedy algorithm with limited game-state evaluation. It aims to make the best move at each step by considering a limited number of possible moves and selecting the one that maximizes the number of flipped opponent's pieces.</td>
+        </tr>
+        <!-- Rest of the table -->
+      </tbody>
+    </table>
+    <div class="game-container"></div>
+      <canvas id="boardCanvas" width="400" height="400"></canvas>
+    </div>
+      <script>
         const BOARD_SIZE = 8;
         const CELL_SIZE = 50;
         const PLAYER_COLOR = 'black';
@@ -140,14 +263,6 @@
 
         // Event listener for mouse click on the canvas
         canvas.addEventListener('click', playerMove);
-
-        // Create a play again button
-        let playAgainButton = document.createElement('button');
-        playAgainButton.textContent = 'Play Again';
-        playAgainButton.addEventListener('click', playAgain);
-
-        // Append the play again button to the body
-        document.body.appendChild(playAgainButton);
 
         // Function to check if a move is valid
         function isValidMove(row, col, color) {
@@ -300,6 +415,11 @@
         // Initialize the board and draw it
         initializeBoard();
         drawBoard();
-    </script>
+      </script>
+      <div class="play-again-button">
+        <button onclick="playAgain()">Play Again</button>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
